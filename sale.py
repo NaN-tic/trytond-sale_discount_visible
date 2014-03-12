@@ -12,6 +12,7 @@ class SaleLine:
     __name__ = 'sale.line'
 
     def update_prices(self):
+        self.discount = Decimal(0)
         res = super(SaleLine, self).update_prices()
         if hasattr(self, 'product'):
             Product = Pool().get('product.product')
