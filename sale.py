@@ -12,9 +12,9 @@ class SaleLine:
     __name__ = 'sale.line'
 
     def update_prices(self):
-        self.discount = Decimal(0)
-        res = super(SaleLine, self).update_prices()
         if hasattr(self, 'product'):
+            self.discount = Decimal(0)
+            res = super(SaleLine, self).update_prices()
             Product = Pool().get('product.product')
             gross_unit_price = Product.get_sale_price([self.product],
                     self.quantity or 0)[self.product.id]
@@ -23,4 +23,6 @@ class SaleLine:
                     Decimal(1) / 10 ** self.__class__.unit_price.digits[1])
                 res['discount'] = 1 - (res['unit_price'] /
                     res['gross_unit_price'])
+        else:
+            res = super(SaleLine, self).update_prices()
         return res
