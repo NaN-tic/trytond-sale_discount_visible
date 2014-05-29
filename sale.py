@@ -23,7 +23,7 @@ class SaleLine:
                     Decimal(1) / 10 ** self.__class__.unit_price.digits[1])
                 discount = 1 - (res['unit_price'] /
                      res['gross_unit_price'])
-                res['discount'] = Decimal("%0.4f" % round(discount))
+                res['discount'] = Decimal("%0.4f" % discount)
         else:
             res = super(SaleLine, self).update_prices()
         return res
