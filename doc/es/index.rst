@@ -1,10 +1,7 @@
-==========================================================
-Ventas. Precio venta y el precio de tarifa en el descuento
-==========================================================
+========================================================================
+Ventas. Descuento calculado a partir del precio venta y precio de tarifa
+========================================================================
 
-Permite mostrar el precio de venta (precio venta sin aplicar la tarifa) con un descuento.
-El descuento es la diferencia entre el precio de venta y el precio con la tarifa de venta
-que se le aplica.
+Permite mostrar la diferencia entre el precio de venta del producto (precio de venta sin aplicar la tarifa) y el precio de venta calculado con la tarifa en forma de descuento.
+El descuento es la diferencia porcentual entre el precio de venta del producto y el precio de venta calculado con la tarifa que se le aplica.
 
-Visualmente el cliente verá el precio que debe pagar pero con el descuento quedará con el precio
-que se le aplica con la tarifa tanto a pedidos de venta como facturas.
