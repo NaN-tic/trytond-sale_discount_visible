@@ -21,7 +21,7 @@ class InvoiceLine:
                 'customer': self.invoice.party.id,
                 }):
             Product = Pool().get('product.product')
-            gross_unit_price = self.gross_unit_price
+            gross_unit_price = self.gross_unit_price_wo_round
             discount = Decimal(0)
             unit_price = Product.get_sale_price([self.product],
                     self.quantity or 0)[self.product.id]
@@ -34,7 +34,6 @@ class InvoiceLine:
                 discount = discount.quantize(
                     Decimal(str(10.0 ** -discount_digits)))
             return {
-                'gross_unit_price': gross_unit_price,
                 'discount': discount,
                 'unit_price': unit_price,
                 }
@@ -45,6 +44,7 @@ class InvoiceLine:
         if (invoice_type in ('out_invoice', 'out_credit_note') and
                 'gross_unit_price' in res):
             self.gross_unit_price = res['gross_unit_price']
+            self.gross_unit_price_wo_round = res['gross_unit_price_wo_round']
             res.update(self.update_prices_visible_discount())
         return res
 
@@ -57,5 +57,7 @@ class InvoiceLine:
             res = super(InvoiceLine, self).on_change_product()
             if 'gross_unit_price' in res:
                 self.gross_unit_price = res['gross_unit_price']
+                self.gross_unit_price_wo_round = (
+                    res['gross_unit_price_wo_round'])
                 res.update(self.update_prices_visible_discount())
         return res

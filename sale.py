@@ -14,6 +14,7 @@ class SaleLine:
     def update_prices_visible_discount(self):
         Product = Pool().get('product.product')
         unit_price = self.gross_unit_price
+        unit_price_wo_round = self.gross_unit_price_wo_round
         discount = Decimal(0)
         gross_unit_price = Product.get_sale_price([self.product],
                 self.quantity or 0)[self.product.id]
@@ -22,7 +23,7 @@ class SaleLine:
             discount_digits = self.__class__.discount.digits[1]
             gross_unit_price = gross_unit_price.quantize(
                 Decimal(str(10.0 ** -unit_price_digits)))
-            discount = 1 - (unit_price / gross_unit_price)
+            discount = 1 - (unit_price_wo_round / gross_unit_price)
             discount = discount.quantize(
                 Decimal(str(10.0 ** -discount_digits)))
         return {
@@ -35,6 +36,7 @@ class SaleLine:
         res = super(SaleLine, self).on_change_product()
         if 'gross_unit_price' in res:
             self.gross_unit_price = res['gross_unit_price']
+            self.gross_unit_price_wo_round = res['gross_unit_price_wo_round']
             res.update(self.update_prices_visible_discount())
         return res
 
@@ -42,5 +44,6 @@ class SaleLine:
         res = super(SaleLine, self).on_change_quantity()
         if 'gross_unit_price' in res:
             self.gross_unit_price = res['gross_unit_price']
+            self.gross_unit_price_wo_round = res['gross_unit_price_wo_round']
             res.update(self.update_prices_visible_discount())
         return res
