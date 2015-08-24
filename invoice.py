@@ -15,16 +15,20 @@ class InvoiceLine:
 
     def update_prices_visible_discount(self):
         if not hasattr(self, 'product') or not hasattr(self, 'invoice'):
-            return {}
+            return
+
+        Product = Pool().get('product.product')
+
         with Transaction().set_context({
                 'price_list': self.invoice.party.sale_price_list,
                 'customer': self.invoice.party.id,
                 }):
-            Product = Pool().get('product.product')
             gross_unit_price = self.gross_unit_price_wo_round
             discount = Decimal(0)
-            unit_price = Product.get_sale_price([self.product],
-                    self.quantity or 0)[self.product.id]
+
+            prices = Product.get_sale_price([self.product], self.quantity or 0)
+            unit_price = prices[self.product.id]
+
             if unit_price:
                 unit_price_digits = self.__class__.unit_price.digits[1]
                 discount_digits = self.__class__.discount.digits[1]
@@ -33,31 +37,27 @@ class InvoiceLine:
                 discount = 1 - (unit_price / gross_unit_price)
                 discount = discount.quantize(
                     Decimal(str(10.0 ** -discount_digits)))
-            return {
-                'discount': discount,
-                'unit_price': unit_price,
-                }
 
+            self.discount = discount
+            self.unit_price = unit_price
+
+    @fields.depends('invoice_type', 'invoice', 'gross_unit_price',
+        'gross_unit_price_wo_round')
     def on_change_product(self):
-        res = super(InvoiceLine, self).on_change_product()
+        super(InvoiceLine, self).on_change_product()
+        if not self.product:
+            return
         invoice_type = self.invoice_type or self.invoice and self.invoice.type
-        if (invoice_type in ('out_invoice', 'out_credit_note') and
-                'gross_unit_price' in res):
-            self.gross_unit_price = res['gross_unit_price']
-            self.gross_unit_price_wo_round = res['gross_unit_price_wo_round']
-            res.update(self.update_prices_visible_discount())
-        return res
+        if invoice_type in ('out_invoice', 'out_credit_note') and self.gross_unit_price:
+            self.gross_unit_price_wo_round = self.gross_unit_price_wo_round
+            self.update_prices_visible_discount()
 
     @fields.depends('product', 'quantity', 'invoice_type', 'party', 'invoice',
-        '_parent_invoice.type', '_parent_invoice.party')
+        'gross_unit_price', 'gross_unit_price_wo_round', '_parent_invoice.type', '_parent_invoice.party')
     def on_change_quantity(self):
-        res = {}
+        super(InvoiceLine, self).on_change_product()
         invoice_type = self.invoice_type or self.invoice and self.invoice.type
         if invoice_type in ('out_invoice', 'out_credit_note'):
-            res = super(InvoiceLine, self).on_change_product()
-            if 'gross_unit_price' in res:
-                self.gross_unit_price = res['gross_unit_price']
-                self.gross_unit_price_wo_round = (
-                    res['gross_unit_price_wo_round'])
-                res.update(self.update_prices_visible_discount())
-        return res
+            if self.gross_unit_price:
+                self.gross_unit_price_wo_round = self.gross_unit_price_wo_round
+                self.update_prices_visible_discount()

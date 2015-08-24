@@ -3,6 +3,7 @@
 # copyright notices and license terms.
 from decimal import Decimal
 from trytond.pool import Pool, PoolMeta
+from trytond.model import fields
 
 __all__ = ['SaleLine']
 __metaclass__ = PoolMeta
@@ -13,11 +14,14 @@ class SaleLine:
 
     def update_prices_visible_discount(self):
         Product = Pool().get('product.product')
+
         unit_price = self.gross_unit_price
         unit_price_wo_round = self.gross_unit_price_wo_round
         discount = Decimal(0)
-        gross_unit_price = Product.get_sale_price([self.product],
-                self.quantity or 0)[self.product.id]
+
+        prices = Product.get_sale_price([self.product], self.quantity or 0)
+        gross_unit_price = prices[self.product.id]
+
         if gross_unit_price:
             unit_price_digits = self.__class__.gross_unit_price.digits[1]
             discount_digits = self.__class__.discount.digits[1]
@@ -26,24 +30,23 @@ class SaleLine:
             discount = 1 - (unit_price_wo_round / gross_unit_price)
             discount = discount.quantize(
                 Decimal(str(10.0 ** -discount_digits)))
-        return {
-            'gross_unit_price': gross_unit_price,
-            'discount': discount,
-            'unit_price': unit_price,
-            }
 
+        self.gross_unit_price = gross_unit_price
+        self.discount = discount
+        self.unit_price = unit_price
+
+    @fields.depends('gross_unit_price', 'gross_unit_price_wo_round')
     def on_change_product(self):
-        res = super(SaleLine, self).on_change_product()
-        if 'gross_unit_price' in res:
-            self.gross_unit_price = res['gross_unit_price']
-            self.gross_unit_price_wo_round = res['gross_unit_price_wo_round']
-            res.update(self.update_prices_visible_discount())
-        return res
+        super(SaleLine, self).on_change_product()
+        if not self.product:
+            return
+        if self.gross_unit_price:
+            self.gross_unit_price_wo_round = self.gross_unit_price_wo_round
+            self.update_prices_visible_discount()
 
+    @fields.depends('gross_unit_price', 'gross_unit_price_wo_round')
     def on_change_quantity(self):
-        res = super(SaleLine, self).on_change_quantity()
-        if 'gross_unit_price' in res:
-            self.gross_unit_price = res['gross_unit_price']
-            self.gross_unit_price_wo_round = res['gross_unit_price_wo_round']
-            res.update(self.update_prices_visible_discount())
-        return res
+        super(SaleLine, self).on_change_quantity()
+        if self.gross_unit_price:
+            self.gross_unit_price_wo_round = self.gross_unit_price_wo_round
+            self.update_prices_visible_discount()
