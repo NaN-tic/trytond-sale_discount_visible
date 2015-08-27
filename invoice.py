@@ -20,8 +20,10 @@ class InvoiceLine:
         Product = Pool().get('product.product')
 
         with Transaction().set_context({
-                'price_list': self.invoice.party.sale_price_list,
-                'customer': self.invoice.party.id,
+                'price_list': self.invoice.party.sale_price_list \
+                    if self.invoice else self.party.sale_price_list,
+                'customer': self.invoice.party.id \
+                    if self.invoice else self.party.id,
                 }):
             gross_unit_price = self.gross_unit_price_wo_round
             discount = Decimal(0)
