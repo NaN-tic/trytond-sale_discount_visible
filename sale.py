@@ -16,18 +16,19 @@ class SaleLine:
         Product = Pool().get('product.product')
 
         unit_price = self.gross_unit_price
+        unit_price_wo_round = self.gross_unit_price_wo_round
         discount = Decimal(0)
 
         prices = Product.get_sale_price([self.product], self.quantity or 0)
         gross_unit_price = prices[self.product.id]
 
-        if gross_unit_price and (self.product.list_price > gross_unit_price):
+        if gross_unit_price:
             unit_price_digits = self.__class__.gross_unit_price.digits[1]
             discount_digits = self.__class__.discount.digits[1]
-            discount = 1 - (gross_unit_price / self.product.list_price)
+            discount = 1 - (unit_price_wo_round / gross_unit_price)
             discount = discount.quantize(
                 Decimal(str(10.0 ** -discount_digits)))
-            gross_unit_price = self.product.list_price.quantize(
+            gross_unit_price = gross_unit_price.quantize(
                 Decimal(str(10.0 ** -unit_price_digits)))
 
         self.gross_unit_price = gross_unit_price
