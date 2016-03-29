@@ -6,10 +6,10 @@ from trytond.pool import Pool, PoolMeta
 from trytond.model import fields
 
 __all__ = ['SaleLine']
-__metaclass__ = PoolMeta
 
 
 class SaleLine:
+    __metaclass__ = PoolMeta
     __name__ = 'sale.line'
 
     def update_prices_visible_discount(self):

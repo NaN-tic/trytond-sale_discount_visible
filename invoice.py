@@ -7,10 +7,10 @@ from trytond.pool import Pool, PoolMeta
 from trytond.transaction import Transaction
 
 __all__ = ['InvoiceLine']
-__metaclass__ = PoolMeta
 
 
 class InvoiceLine:
+    __metaclass__ = PoolMeta
     __name__ = 'account.invoice.line'
 
     def update_prices_visible_discount(self):
