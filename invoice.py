@@ -50,7 +50,7 @@ class InvoiceLine:
         if not self.product:
             return
         invoice_type = self.invoice_type or self.invoice and self.invoice.type
-        if invoice_type in ('out_invoice', 'out_credit_note') and self.gross_unit_price:
+        if invoice_type == 'out' and self.gross_unit_price:
             self.gross_unit_price_wo_round = self.gross_unit_price_wo_round
             self.update_prices_visible_discount()
 
@@ -59,7 +59,7 @@ class InvoiceLine:
     def on_change_quantity(self):
         super(InvoiceLine, self).on_change_product()
         invoice_type = self.invoice_type or self.invoice and self.invoice.type
-        if invoice_type in ('out_invoice', 'out_credit_note'):
+        if invoice_type == 'out':
             if self.gross_unit_price:
                 self.gross_unit_price_wo_round = self.gross_unit_price_wo_round
                 self.update_prices_visible_discount()
